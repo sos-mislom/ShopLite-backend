@@ -4,7 +4,7 @@ from app.config import settings
 
 
 async def send_reset_email(email: str, token: str):
-    reset_link = f"http://92.118.115.96/reset-password?token={token}"
+    reset_link = f"http://195.133.66.226:9000/reset?token={token}"
 
     msg = MIMEText(f"Для восстановления пароля перейдите по ссылке:\n{reset_link}")
     msg["Subject"] = "Восстановление пароля"
