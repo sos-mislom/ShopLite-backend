@@ -10,12 +10,12 @@ from jose import jwt
 
 class AuthService:
     @staticmethod
-    async def register_user(email: str, password: str, db: AsyncSession):
+    async def register_user(email: str, password: str, name: str, db: AsyncSession):
         query = await db.execute(select(User).where(User.email == email))
         if query.scalars().first():
             raise HTTPException(status_code=400, detail="Email already taken")
 
-        user = User(email=email, hashed_password=hash_password(password))
+        user = User(email=email, hashed_password=hash_password(password), name=name)
         db.add(user)
         await db.commit()
         return user
