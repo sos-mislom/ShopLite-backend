@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 class StoreCreate(BaseModel):
     name: str
@@ -9,8 +10,9 @@ class StoreCreate(BaseModel):
 
 class StoreOut(StoreCreate):
     id: int
-    slug: str
-    created_at: str
+    name: str
+    slug: str | None = None
+    created_at: datetime
 
     class Config:
         orm_mode = True
