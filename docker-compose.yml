@@ -30,11 +30,15 @@ services:
       REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
+      MEDIA_ROOT: ${MEDIA_ROOT:-/app/uploads}
+      MEDIA_URL: ${MEDIA_URL:-/uploads}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:9000}
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - ./alembic/versions:/app/alembic/versions
+      - ./uploads:/app/uploads
     ports:
       - "9000:8000"
     networks:
