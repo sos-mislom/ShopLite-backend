@@ -13,6 +13,7 @@ from app.routers.collections import router as collections_router
 from app.routers.orders import router as orders_router
 from app.routers.media import router as media_router
 from app.routers.public import router as public_router
+from app.routers.yookassa_payment_webhook import router as webhook_router
 from app.config import settings
 
 app = FastAPI(title="Shoplite")
@@ -42,6 +43,7 @@ app.include_router(collections_router, prefix="/v1/api")
 app.include_router(orders_router, prefix="/v1/api")
 app.include_router(media_router, prefix="/v1/api")
 app.include_router(public_router, prefix="/v1/api")
+app.include_router(webhook_router, prefix="/v1/api")
 
 upload_dir = Path(settings.MEDIA_ROOT).resolve()
 upload_dir.mkdir(parents=True, exist_ok=True)
