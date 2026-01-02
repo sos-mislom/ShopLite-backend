@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     MEDIA_URL: str = Field("/uploads", env="MEDIA_URL")
     PUBLIC_BASE_URL: str = Field("http://localhost:8000", env="PUBLIC_BASE_URL")
 
+    YOOKASSA_SHOP_ID: str = Field("", env="YOOKASSA_SHOP_ID")
+    YOOKASSA_SECRET_KEY: str = Field("", env="YOOKASSA_SECRET_KEY")
+    YOOKASSA_API_BASE: str = Field("https://api.yookassa.ru", env="YOOKASSA_API_BASE")
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

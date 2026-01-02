@@ -10,9 +10,15 @@ class UserOut(BaseModel):
     id: int
     email: EmailStr
     name: str | None = None
+    phone: str | None = None
 
     class Config:
         orm_mode = True
+
+
+class UserUpdate(BaseModel):
+    name: str | None = None
+    phone: str | None = None
 
 
 class UserLogin(BaseModel):

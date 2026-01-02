@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import Store, StoreDesign, get_db
@@ -11,7 +11,8 @@ router = APIRouter(prefix="/public", tags=["Public"])
 
 @router.get("/{slug}", response_model=PublishedStoreOut)
 async def get_published_store(slug: str, db: AsyncSession = Depends(get_db)):
-    store_stmt = select(Store).where(Store.slug == slug)
+    normalized = slug.lower()
+    store_stmt = select(Store).where(func.lower(Store.slug) == normalized)
     store_row = await db.execute(store_stmt)
     store = store_row.scalars().first()
     if not store:

@@ -11,8 +11,14 @@ from app.routers.products import router as products_router
 from app.routers.categories import router as categories_router
 from app.routers.collections import router as collections_router
 from app.routers.orders import router as orders_router
+from app.routers.orders_admin import router as orders_admin_router
 from app.routers.media import router as media_router
 from app.routers.public import router as public_router
+from app.routers.users import router as users_router
+from app.routers.analytics import router as analytics_router
+from app.routers.checkout import router as checkout_router
+from app.routers.payments import router as payments_router
+from app.routers.visits import router as visits_router
 from app.config import settings
 
 app = FastAPI(title="Shoplite")
@@ -40,8 +46,14 @@ app.include_router(products_router, prefix="/v1/api")
 app.include_router(categories_router, prefix="/v1/api")
 app.include_router(collections_router, prefix="/v1/api")
 app.include_router(orders_router, prefix="/v1/api")
+app.include_router(orders_admin_router, prefix="/v1/api")
 app.include_router(media_router, prefix="/v1/api")
 app.include_router(public_router, prefix="/v1/api")
+app.include_router(users_router, prefix="/v1/api")
+app.include_router(analytics_router, prefix="/v1/api")
+app.include_router(checkout_router, prefix="/v1/api")
+app.include_router(payments_router, prefix="/v1/api")
+app.include_router(visits_router, prefix="/v1/api")
 
 upload_dir = Path(settings.MEDIA_ROOT).resolve()
 upload_dir.mkdir(parents=True, exist_ok=True)

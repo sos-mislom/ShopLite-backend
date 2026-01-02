@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import Collection, CollectionProduct, get_db
+from app.database import Collection, CollectionProduct, Product, get_db
 from app.schemas.collection import CollectionCreate, CollectionOut
+from app.schemas.collection_product import CollectionProductLinkOut
 
 router = APIRouter(tags=["Collections"])
 
@@ -86,9 +87,51 @@ async def delete_store_collection(store_id: int, collection_id: int, db: AsyncSe
     return {"status": "ok"}
 
 
+@router.get("/stores/{store_id}/collection-products", response_model=list[CollectionProductLinkOut])
+async def list_store_collection_products(store_id: int, db: AsyncSession = Depends(get_db)):
+    stmt = (
+        select(CollectionProduct.collection_id, CollectionProduct.product_id)
+        .join(Collection, Collection.id == CollectionProduct.collection_id)
+        .where(Collection.store_id == store_id)
+    )
+    rows = (await db.execute(stmt)).all()
+    return [CollectionProductLinkOut(collection_id=int(r.collection_id), product_id=int(r.product_id)) for r in rows]
+
+
 @router.post("/collections/{collection_id}/products/{product_id}")
 async def add_product(collection_id: int, product_id: int, db: AsyncSession = Depends(get_db)):
+    collection = await db.get(Collection, collection_id)
+    if not collection:
+        raise HTTPException(404, "Collection not found")
+
+    product = await db.get(Product, product_id)
+    if not product or product.store_id != collection.store_id:
+        raise HTTPException(404, "Product not found for this store")
+
+    existing_stmt = select(CollectionProduct.id).where(
+        CollectionProduct.collection_id == collection_id,
+        CollectionProduct.product_id == product_id,
+    )
+    existing = (await db.execute(existing_stmt)).scalar()
+    if existing:
+        return {"status": "exists"}
+
     link = CollectionProduct(collection_id=collection_id, product_id=product_id)
     db.add(link)
     await db.commit()
     return {"status": "added"}
+
+
+@router.delete("/collections/{collection_id}/products/{product_id}")
+async def remove_product(collection_id: int, product_id: int, db: AsyncSession = Depends(get_db)):
+    stmt = select(CollectionProduct).where(
+        CollectionProduct.collection_id == collection_id,
+        CollectionProduct.product_id == product_id,
+    )
+    res = await db.execute(stmt)
+    link = res.scalars().first()
+    if not link:
+        return {"status": "missing"}
+    await db.delete(link)
+    await db.commit()
+    return {"status": "removed"}

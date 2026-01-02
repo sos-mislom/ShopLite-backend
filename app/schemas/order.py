@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List, Any
+from datetime import datetime
 
 
 class OrderItemIn(BaseModel):
@@ -38,6 +39,7 @@ class OrderOut(OrderBase):
     payment_method: Optional[str] = None
     payment_status: str
     notes: Optional[str] = None
+    created_at: Optional[datetime] = None
     items: List[OrderItemOut] = []
 
     class Config:

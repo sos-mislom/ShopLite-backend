@@ -40,6 +40,7 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     hashed_password = Column(String)
     name = Column(String)
+    phone = Column(String(50))
     
     is_active = Column(Boolean, default=True)
     
@@ -69,12 +70,17 @@ class Store(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     user = relationship("User", back_populates="stores")
-    design = relationship("StoreDesign", back_populates="store", uselist=False)
+    design = relationship(
+        "StoreDesign",
+        back_populates="store",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
 
-    products = relationship("Product", back_populates="store")
-    categories = relationship("Category", back_populates="store")
-    collections = relationship("Collection", back_populates="store")
-    orders = relationship("Order", back_populates="store")
+    products = relationship("Product", back_populates="store", cascade="all, delete-orphan")
+    categories = relationship("Category", back_populates="store", cascade="all, delete-orphan")
+    collections = relationship("Collection", back_populates="store", cascade="all, delete-orphan")
+    orders = relationship("Order", back_populates="store", cascade="all, delete-orphan")
 
 
 # ============================================
@@ -216,7 +222,8 @@ class Order(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     store = relationship("Store", back_populates="orders")
-    items = relationship("OrderItem", back_populates="order")
+    items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    payments = relationship("Payment", back_populates="order", cascade="all, delete-orphan")
 
 
 # ============================================
@@ -236,3 +243,42 @@ class OrderItem(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     order = relationship("Order", back_populates="items")
+
+
+# ============================================
+# PAYMENTS
+# ============================================
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True)
+    order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
+    provider = Column(String(50), nullable=False)
+    provider_payment_id = Column(String(128), nullable=False, unique=True)
+    status = Column(String(50), nullable=False)
+    amount = Column(DECIMAL(10, 2), nullable=False)
+    currency = Column(String(3), nullable=False, default="RUB")
+    confirmation_url = Column(Text)
+    raw_response = Column(JSON)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    order = relationship("Order", back_populates="payments")
+
+
+# ============================================
+# STORE VISITS
+# ============================================
+
+class StoreVisit(Base):
+    __tablename__ = "store_visits"
+
+    id = Column(Integer, primary_key=True)
+    store_id = Column(Integer, ForeignKey("stores.id", ondelete="CASCADE"), nullable=False)
+    path = Column(Text)
+    referrer = Column(Text)
+    user_agent = Column(Text)
+    created_at = Column(DateTime, server_default=func.now())
+
+    store = relationship("Store")

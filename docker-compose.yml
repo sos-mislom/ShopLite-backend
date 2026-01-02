@@ -33,6 +33,9 @@ services:
       MEDIA_ROOT: ${MEDIA_ROOT:-/app/uploads}
       MEDIA_URL: ${MEDIA_URL:-/uploads}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:9000}
+      YOOKASSA_SHOP_ID: ${YOOKASSA_SHOP_ID:-}
+      YOOKASSA_SECRET_KEY: ${YOOKASSA_SECRET_KEY:-}
+      YOOKASSA_API_BASE: ${YOOKASSA_API_BASE:-https://api.yookassa.ru}
     depends_on:
       db:
         condition: service_healthy
