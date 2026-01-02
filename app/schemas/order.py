@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional, List, Any
 from datetime import datetime
 
@@ -22,6 +22,7 @@ class OrderBase(BaseModel):
 
 
 class OrderCreate(OrderBase):
+    customer_email: EmailStr
     items: List[OrderItemIn]
 
 
