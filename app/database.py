@@ -217,6 +217,7 @@ class Order(Base):
     status = Column(String(50), default="pending")
     payment_method = Column(String(50))
     payment_status = Column(String(50), default="unpaid")
+    tracking_number = Column(String(32), unique=True, index=True)
     notes = Column(Text)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

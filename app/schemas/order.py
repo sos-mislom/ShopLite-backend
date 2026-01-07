@@ -39,9 +39,23 @@ class OrderOut(OrderBase):
     status: str
     payment_method: Optional[str] = None
     payment_status: str
+    tracking_number: Optional[str] = None
     notes: Optional[str] = None
     created_at: Optional[datetime] = None
     items: List[OrderItemOut] = []
+
+    class Config:
+        orm_mode = True
+
+
+class OrderTrackingOut(BaseModel):
+    id: int
+    tracking_number: str
+    status: str
+    payment_status: str
+    total_amount: float
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         orm_mode = True

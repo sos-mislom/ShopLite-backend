@@ -2,10 +2,11 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from app.database import Order, OrderItem, Product, Store, get_db
-from app.schemas.order import OrderCreate, OrderOut
+from app.schemas.order import OrderCreate, OrderOut, OrderTrackingOut
+from app.services.tracking_service import generate_tracking_number
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
@@ -21,9 +22,22 @@ async def get_orders(store_id: int, db: AsyncSession = Depends(get_db)):
     return rows.scalars().all()
 
 
-@router.get("/{order_id}", response_model=OrderOut)
+@router.get("/{order_id:int}", response_model=OrderOut)
 async def get_order(order_id: int, db: AsyncSession = Depends(get_db)):
     q = select(Order).where(Order.id == order_id).options(selectinload(Order.items))
+    res = await db.execute(q)
+    row = res.scalars().first()
+    if not row:
+        raise HTTPException(404, "Order not found")
+    return row
+
+
+@router.get("/track/{tracking_number}", response_model=OrderTrackingOut)
+async def get_order_by_tracking(tracking_number: str, db: AsyncSession = Depends(get_db)):
+    normalized = tracking_number.strip().upper()
+    if not normalized:
+        raise HTTPException(400, "tracking_number is required")
+    q = select(Order).where(func.upper(Order.tracking_number) == normalized)
     res = await db.execute(q)
     row = res.scalars().first()
     if not row:
@@ -85,6 +99,7 @@ async def create_order(payload: OrderCreate, db: AsyncSession = Depends(get_db))
         )
 
     total = total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    tracking_number = await generate_tracking_number(db)
     order = Order(
         store_id=payload.store_id,
         customer_email=str(payload.customer_email),
@@ -96,6 +111,7 @@ async def create_order(payload: OrderCreate, db: AsyncSession = Depends(get_db))
         status="pending",
         payment_method="offline",
         payment_status="unpaid",
+        tracking_number=tracking_number,
     )
     order.items = prepared_items
     db.add(order)

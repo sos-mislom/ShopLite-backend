@@ -8,7 +8,10 @@ from sqlalchemy.orm import selectinload
 from app.config import settings
 from app.database import Order, OrderItem, Payment, Product, Store, get_db
 from app.schemas.checkout import CheckoutCreate, CheckoutOut
+from app.schemas.order import OrderOut
+from app.schemas.payment import PaymentOut
 from app.services.yookassa_service import YooKassaService
+from app.services.tracking_service import generate_tracking_number
 
 router = APIRouter(prefix="/checkout", tags=["Checkout"])
 
@@ -48,6 +51,7 @@ async def checkout_yookassa(payload: CheckoutCreate, db: AsyncSession = Depends(
             )
         )
 
+    tracking_number = await generate_tracking_number(db)
     order = Order(
         store_id=payload.store_id,
         customer_email=str(payload.customer_email),
@@ -59,6 +63,7 @@ async def checkout_yookassa(payload: CheckoutCreate, db: AsyncSession = Depends(
         status="pending",
         payment_method="yookassa",
         payment_status="pending",
+        tracking_number=tracking_number,
     )
     db.add(order)
     await db.commit()
@@ -118,4 +123,6 @@ async def checkout_yookassa(payload: CheckoutCreate, db: AsyncSession = Depends(
     order_full = order_res.scalars().first()
     await db.refresh(payment)
 
-    return CheckoutOut(order=order_full, payment=payment, confirmation_url=confirmation_url)
+    order_out = OrderOut.model_validate(order_full, from_attributes=True)
+    payment_out = PaymentOut.model_validate(payment, from_attributes=True)
+    return CheckoutOut(order=order_out, payment=payment_out, confirmation_url=confirmation_url)
